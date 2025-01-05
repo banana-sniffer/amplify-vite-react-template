@@ -10,7 +10,32 @@ const schema = a.schema({
   Todo: a
     .model({
       content: a.string(),
-    }).authorization(allow => [allow.owner()]),
+    })
+    .authorization(allow => [allow.owner()]),
+
+  WorkoutCompletion: a
+    .model({
+      weekNum: a.integer(),
+      day: a.string(),
+      isCompleted: a.boolean(),
+      owner: a.string(),  // This will store the user ID
+    })
+    .authorization(allow => [allow.owner()]),
+
+  Cheer: a
+    .model({
+      weekNum: a.integer(),
+      day: a.string(),
+      message: a.string(),
+      timestamp: a.string(),
+      owner: a.string(),  // This will store the user ID who created the cheer
+    })
+    .authorization(allow => [
+      // Allow owner full access
+      allow.owner(),
+      // Allow all authenticated users to read cheers
+      allow.authenticated().to(['read']),
+    ])
 });
 
 export type Schema = ClientSchema<typeof schema>;
