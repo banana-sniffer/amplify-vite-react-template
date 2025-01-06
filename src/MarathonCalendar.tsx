@@ -10,9 +10,10 @@ import { useAuthenticator } from '@aws-amplify/ui-react';
 import type { Schema } from "../amplify/data/resource";
 import { getCurrentUser } from 'aws-amplify/auth';
 
-const client = generateClient<Schema>();
+const ADMIN_ID = "fake_admin_id"
+// const ADMIN_ID = "e9a9a90e-10b1-70ad-2fde-5e87d1fc72cf"
 
-const { username, userId, signInDetails } = await getCurrentUser();
+const client = generateClient<Schema>();
 
 export const MarathonCalendar = () => {
     const [completedWorkouts, setCompletedWorkouts] = useState(new Set());
@@ -23,13 +24,23 @@ export const MarathonCalendar = () => {
 
     console.log('user', user)
     console.log('isAdmin', isAdmin)
-    console.log("username", username);
-    console.log("user id", userId);
-    console.log("sign-in details", signInDetails);
+
+    useEffect(() => {
+        getUserData();
+    }, []);
 
     useEffect(() => {
         fetchWorkoutData();
-    }, []);
+    }, [isAdmin]);
+
+    // TODO: Fix the auth!!!
+    const getUserData = async () => {
+        const { username, userId, signInDetails } = await getCurrentUser();
+        console.log("username", username);
+        console.log("user id", userId);
+        console.log("sign-in details", signInDetails);
+        setIsAdmin(userId === ADMIN_ID)
+    }
 
     // Function to fetch both completions and cheers
     const fetchWorkoutData = async () => {
@@ -44,6 +55,7 @@ export const MarathonCalendar = () => {
             setCompletedWorkouts(completedSet);
         
             // Fetch cheers
+            if (!isAdmin) return;
             const cheersData = await client.models.Cheer.list();
             const cheersMap = {};
             cheersData.data.forEach(cheer => {
@@ -63,6 +75,7 @@ export const MarathonCalendar = () => {
 
     // Update your toggleWorkoutCompletion function:
     const toggleWorkoutCompletion = async (weekNum, day, e) => {
+        if (!isAdmin) return;
         if (e.target.closest('.cheer-popover')) return;
         
         const workoutKey = `${weekNum}-${day}`;
@@ -150,6 +163,7 @@ export const MarathonCalendar = () => {
     };
 
     const addCheer = async (weekNum, day) => {
+        if (!isAdmin) return;
         if (!newCheer.trim()) return;
     
         try {
@@ -182,6 +196,7 @@ export const MarathonCalendar = () => {
     };
 
     const deleteCheer = async (workoutKey: string, cheerId: string) => {
+        if (!isAdmin) return;
         try {
             await client.models.Cheer.delete({
                 id: cheerId
@@ -266,7 +281,7 @@ export const MarathonCalendar = () => {
                                                         )}
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <Popover>
+                                                        { isAdmin && (<Popover>
                                                             <PopoverTrigger asChild>
                                                                 <Button 
                                                                     variant="ghost" 
@@ -330,7 +345,7 @@ export const MarathonCalendar = () => {
                                                                     </div>
                                                                 </div>
                                                             </PopoverContent>
-                                                        </Popover>
+                                                        </Popover> )}
                                                     </div>
                                                 </div>
                                                 <p className="text-sm mb-2 font-medium">{workout}</p>
