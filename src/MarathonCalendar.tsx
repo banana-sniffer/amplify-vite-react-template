@@ -8,14 +8,24 @@ import { WORKOUTS, WEEKS, LONG_RUN_NUTRITION, TEMPO_MP_DAY_NUTRITION, EASY_DAY_N
 import { generateClient } from 'aws-amplify/api';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import type { Schema } from "../amplify/data/resource";
+import { getCurrentUser } from 'aws-amplify/auth';
 
 const client = generateClient<Schema>();
+
+const { username, userId, signInDetails } = await getCurrentUser();
 
 export const MarathonCalendar = () => {
     const [completedWorkouts, setCompletedWorkouts] = useState(new Set());
     const [cheers, setCheers] = useState({});
     const [newCheer, setNewCheer] = useState('');
     const { user, signOut } = useAuthenticator();
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    console.log('user', user)
+    console.log('isAdmin', isAdmin)
+    console.log("username", username);
+    console.log("user id", userId);
+    console.log("sign-in details", signInDetails);
 
     useEffect(() => {
         fetchWorkoutData();
