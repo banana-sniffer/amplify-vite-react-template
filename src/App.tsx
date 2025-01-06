@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
-import { useAuthenticator } from '@aws-amplify/ui-react';
-import { Card } from '@/components/ui/card'
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-// import { Button } from '@/components/ui/button'
-// import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-// import { MessageCircle, X } from 'lucide-react'
+import { useAuthenticator } from '@aws-amplify/ui-react'
+import { MarathonCalendar } from './MarathonCalendar';
+
 
 const client = generateClient<Schema>();
 
@@ -60,26 +57,32 @@ function App() {
     client.models.Todo.create({ content: window.prompt("Todo content") });
   }
 
+  // return (
+  //   <main>
+  //     <h1>{user?.signInDetails?.loginId}'s todos</h1>
+  //     <Card>test!</Card>
+  //     <button onClick={createTodo}>+ new</button>
+  //     <ul>
+  //       {todos.map((todo) => (
+  //         <li onClick={() => deleteTodo(todo.id)} key={todo.id}>{todo.content}</li>
+  //       ))}
+  //     </ul>
+  //     <div>
+  //       🥳 App successfully hosted. Try creating a new todo.
+  //       <br />
+  //       <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
+  //         Review next step of this tutorial.
+  //       </a>
+  //     </div>
+  //     <button onClick={signOut}>Sign out</button>
+  //   </main>
+  // );
+
   return (
-    <main>
-      <h1>{user?.signInDetails?.loginId}'s todos</h1>
-      <Card>test!</Card>
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li onClick={() => deleteTodo(todo.id)} key={todo.id}>{todo.content}</li>
-        ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
-      <button onClick={signOut}>Sign out</button>
-    </main>
-  );
+    <>
+      <MarathonCalendar/>
+    </>
+  )
 }
 
 export default App;

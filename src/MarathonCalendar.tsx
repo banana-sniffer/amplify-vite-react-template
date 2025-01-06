@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -6,28 +6,112 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { MessageCircle, X } from 'lucide-react';
 import { WORKOUTS, WEEKS, LONG_RUN_NUTRITION, TEMPO_MP_DAY_NUTRITION, EASY_DAY_NUTRITION, REST_DAY_NUTRITION } from './MarathonCalendarConstants';
 import { v4 as uuidv4 } from 'uuid';
+import { generateClient } from 'aws-amplify/api';
+import { useAuthenticator } from '@aws-amplify/ui-react';
+import type { Schema } from "../amplify/data/resource";
 
-const MarathonCalendar = () => {
+const client = generateClient<Schema>();
+
+export const MarathonCalendar = () => {
     const [completedWorkouts, setCompletedWorkouts] = useState(new Set());
     const [cheers, setCheers] = useState({});
     const [newCheer, setNewCheer] = useState('');
+    const { user, signOut } = useAuthenticator();
 
-    const toggleWorkoutCompletion = (weekNum, day, e) => {
-        // Prevent toggling when clicking within the cheer popover
-        if (e.target.closest('.cheer-popover')) {
-            return;
+    useEffect(() => {
+        fetchWorkoutData();
+      }, []);
+
+      // Function to fetch both completions and cheers
+    const fetchWorkoutData = async () => {
+        try {
+        // Fetch completed workouts
+        const completionsData = await client.models.WorkoutCompletion.list();
+        const completedSet = new Set(
+            completionsData.data.map(completion => `${completion.weekNum}-${completion.day}`)
+        );
+        setCompletedWorkouts(completedSet);
+    
+        // Fetch cheers
+        const cheersData = await client.models.Cheer.list();
+        const cheersMap = {};
+        cheersData.data.forEach(cheer => {
+            const key = `${cheer.weekNum}-${cheer.day}`;
+            if (!cheersMap[key]) cheersMap[key] = [];
+            cheersMap[key].push({
+            id: cheer.id,
+            message: cheer.message,
+            timestamp: cheer.timestamp,
+            });
+        });
+        setCheers(cheersMap);
+        } catch (error) {
+        console.error('Error fetching data:', error);
         }
+    };
+
+    // const toggleWorkoutCompletion = (weekNum, day, e) => {
+    //     // Prevent toggling when clicking within the cheer popover
+    //     if (e.target.closest('.cheer-popover')) {
+    //         return;
+    //     }
+        
+    //     const workoutKey = `${weekNum}-${day}`;
+    //     setCompletedWorkouts(prev => {
+    //         const newCompleted = new Set(prev);
+    //         if (newCompleted.has(workoutKey)) {
+    //             newCompleted.delete(workoutKey);
+    //         } else {
+    //             newCompleted.add(workoutKey);
+    //         }
+    //         return newCompleted;
+    //     });
+    // };
+
+    // Update your toggleWorkoutCompletion function:
+    const toggleWorkoutCompletion = async (weekNum, day, e) => {
+        if (e.target.closest('.cheer-popover')) return;
         
         const workoutKey = `${weekNum}-${day}`;
-        setCompletedWorkouts(prev => {
-            const newCompleted = new Set(prev);
-            if (newCompleted.has(workoutKey)) {
-                newCompleted.delete(workoutKey);
+        const isCompleted = !completedWorkouts.has(workoutKey);
+        
+        try {
+            // First, try to find an existing completion record
+            const existingCompletions = await client.models.WorkoutCompletion.list({
+                filter: {
+                    weekNum: { eq: weekNum },
+                    day: { eq: day }
+                }
+            });
+    
+            if (existingCompletions.data && existingCompletions.data.length > 0) {
+                // If record exists, update it
+                const existingCompletion = existingCompletions.data[0];
+                await client.models.WorkoutCompletion.update({
+                    id: existingCompletion.id,
+                    isCompleted: isCompleted,
+                });
             } else {
-                newCompleted.add(workoutKey);
+                // If no record exists, create a new one
+                await client.models.WorkoutCompletion.create({
+                    weekNum,
+                    day,
+                    isCompleted,
+                });
             }
-            return newCompleted;
-        });
+        
+            setCompletedWorkouts(prev => {
+                const newCompleted = new Set(prev);
+                if (isCompleted) {
+                    newCompleted.add(workoutKey);
+                } else {
+                    newCompleted.delete(workoutKey);
+                }
+                return newCompleted;
+            });
+        } catch (error) {
+            console.error('Error toggling workout completion:', error);
+        }
     };
 
     // Rest of the helper functions remain the same...
@@ -70,29 +154,82 @@ const MarathonCalendar = () => {
         return REST_DAY_NUTRITION
     };
 
-    const addCheer = (weekNum, day) => {
+    // const addCheer = (weekNum, day) => {
+    //     if (!newCheer.trim()) return;
+    
+    //     const workoutKey = `${weekNum}-${day}`;
+    //     setCheers(prev => ({
+    //         ...prev,
+    //         [workoutKey]: [
+    //             ...(prev[workoutKey] || []),
+    //             {
+    //                 id: uuidv4(),
+    //                 message: newCheer.trim(),
+    //                 timestamp: new Date().toISOString(),
+    //             },
+    //         ],
+    //     }));
+    //     setNewCheer('');
+    // };
+
+
+    // Update your addCheer function:
+    const addCheer = async (weekNum, day) => {
         if (!newCheer.trim()) return;
     
+        try {
+        const cheer = await client.models.Cheer.create({
+            weekNum,
+            day,
+            message: newCheer.trim(),
+            timestamp: new Date().toISOString(),
+        });
+    
         const workoutKey = `${weekNum}-${day}`;
+        
         setCheers(prev => ({
             ...prev,
             [workoutKey]: [
-                ...(prev[workoutKey] || []),
-                {
-                    id: uuidv4(),
-                    message: newCheer.trim(),
-                    timestamp: new Date().toISOString(),
-                },
+            ...(prev[workoutKey] || []),
+            {
+                id: cheer.id,
+                message: cheer.message,
+                timestamp: cheer.timestamp,
+            },
             ],
         }));
-        setNewCheer('');
+            setNewCheer('');
+        } catch (error) {
+            console.error('Error adding cheer:', error);
+        }
     };
 
-    const deleteCheer = (workoutKey, cheerId) => {
-        setCheers(prev => ({
-            ...prev,
-            [workoutKey]: prev[workoutKey].filter(cheer => cheer.id !== cheerId),
-        }));
+    // const deleteCheer = (workoutKey, cheerId) => {
+    //     setCheers(prev => ({
+    //         ...prev,
+    //         [workoutKey]: prev[workoutKey].filter(cheer => cheer.id !== cheerId),
+    //     }));
+    // };
+
+    const deleteCheer = async (workoutKey: string, cheerId: string) => {
+        try {
+            await client.models.Cheer.delete({
+                id: cheerId
+            });
+    
+            setCheers(prev => ({
+                ...prev,
+                [workoutKey]: prev[workoutKey].filter(cheer => cheer.id !== cheerId),
+            }));
+        } catch (error) {
+            console.error('Error deleting cheer:', error);
+            // You could integrate this with your UI's toast/notification system
+            // For example, if using react-toastify:
+            // toast.error('Failed to delete cheer. Please try again.');
+            
+            // Or throw the error to be handled by a parent error boundary
+            throw new Error('Failed to delete cheer');
+        }
     };
 
     return (
@@ -242,5 +379,3 @@ const MarathonCalendar = () => {
         </div>
     );
 };
-
-export default MarathonCalendar;
