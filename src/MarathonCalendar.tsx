@@ -10,8 +10,7 @@ import { useAuthenticator } from '@aws-amplify/ui-react';
 import type { Schema } from "../amplify/data/resource";
 import { getCurrentUser } from 'aws-amplify/auth';
 
-const ADMIN_ID = "fake_admin_id"
-// const ADMIN_ID = "e9a9a90e-10b1-70ad-2fde-5e87d1fc72cf"
+const ADMIN_ID = "5929592e-5051-7088-73ba-b32aa4b38f36"
 
 const client = generateClient<Schema>();
 
@@ -22,7 +21,6 @@ export const MarathonCalendar = () => {
     const { user, signOut } = useAuthenticator();
     const [isAdmin, setIsAdmin] = useState(false);
 
-    console.log('user', user)
     console.log('isAdmin', isAdmin)
 
     useEffect(() => {
@@ -33,12 +31,9 @@ export const MarathonCalendar = () => {
         fetchWorkoutData();
     }, [isAdmin]);
 
-    // TODO: Fix the auth!!!
+    // TODO: Fix the auth to be real auth, for now just do WILL_ID and ANGELA_ID
     const getUserData = async () => {
-        const { username, userId, signInDetails } = await getCurrentUser();
-        console.log("username", username);
-        console.log("user id", userId);
-        console.log("sign-in details", signInDetails);
+        const { userId } = await getCurrentUser();
         setIsAdmin(userId === ADMIN_ID)
     }
 
