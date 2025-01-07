@@ -13,6 +13,15 @@ import { getCurrentUser } from 'aws-amplify/auth';
 const WILL_ID = "5929592e-5051-7088-73ba-b32aa4b38f36"
 const ANGELA_ID = 'b939895e-3031-70e9-effa-109b901a0fb3'
 
+// Stuff TODO
+// Center and format things correctly (login screen)
+// Add ability to add notes to the "back" of each of the cards
+// Fix auth to be real based on group permissions
+// Add ability to distinguish cheers
+// Add way to acknowledge cheers/reply to them
+// Add username for a given user rather than just using their email
+// Stylize it a bit more, add a background, something simple etc.
+
 const client = generateClient<Schema>();
 
 export const MarathonCalendar = () => {
