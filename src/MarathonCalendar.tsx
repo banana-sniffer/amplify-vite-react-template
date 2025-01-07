@@ -43,7 +43,6 @@ export const MarathonCalendar = () => {
     // TODO: Fix the auth to be real auth, for now just do WILL_ID and ANGELA_ID
     const getUserData = async () => {
         const { userId } = await getCurrentUser();
-        console.log('userId', userId)
         setIsAdmin(userId === WILL_ID)
         setIsAngela(userId === ANGELA_ID)
     }
