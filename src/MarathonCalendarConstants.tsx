@@ -6,9 +6,9 @@ export const WEEKS = [
     { start: '2/3', end: '2/9', weekNum: 5 },
     { start: '2/10', end: '2/16', weekNum: 6 },
     { start: '2/17', end: '2/23', weekNum: 7 },
-    { start: '2/24', end: '3/1', weekNum: 8 },
-    { start: '3/2', end: '3/8', weekNum: 9 },
-    { start: '3/9', end: '3/15', weekNum: 10 }
+    { start: '2/24', end: '3/2', weekNum: 8 },
+    { start: '3/3', end: '3/9', weekNum: 9 },
+    { start: '3/10', end: '3/16', weekNum: 10 }
 ];
 
 export const WORKOUTS = {

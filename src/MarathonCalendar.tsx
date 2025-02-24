@@ -21,6 +21,8 @@ const ANGELA_ID = 'b939895e-3031-70e9-effa-109b901a0fb3'
 // Add way to acknowledge cheers/reply to them
 // Add username for a given user rather than just using their email
 // Stylize it a bit more, add a background, something simple etc.
+// Update the constants so that they are all consolidated and actually used
+// Move to a more aptly named github repo
 
 const client = generateClient<Schema>();
 
@@ -377,9 +379,9 @@ export const MarathonCalendar = () => {
                                 <Card className="p-4">
                                     <h3 className="font-bold mb-2">Pace Guidelines</h3>
                                     <ul className="text-sm space-y-1">
-                                        <li>Easy/Recovery: 8:45-9:15/mile</li>
-                                        <li>Long Run Base: 8:30-9:00/mile</li>
-                                        <li>Training Marathon Pace (MP): 7:49/mile (10 second faster than marathon pace)</li>
+                                        <li>Easy/Recovery: 8:45-9:00/mile</li>
+                                        <li>Long Run Base: 8:20-8:40/mile</li>
+                                        <li>Training Marathon Pace (MP): 7:49/mile (11 seconds faster than marathon pace)</li>
                                         <li>Tempo Pace: 7:20-7:30/mile</li>
                                         <li>5K Pace: 6:40-6:50/mile</li>
                                     </ul>
